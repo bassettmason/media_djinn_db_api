@@ -1,5 +1,8 @@
 from utils import remove_null_values, initialize_firestore, add_movie_to_firestore
 
+# Initializing Firestore client
+db = initialize_firestore()
+
 def add_movie_to_db(request):
     """Adds a movie object to the Firestore database."""
     if request.method != 'POST':
@@ -15,9 +18,6 @@ def add_movie_to_db(request):
         return 'No IMDb ID provided in movie object', 400
 
     cleaned_data = remove_null_values(request_json)
-
-    # Initializing Firestore client
-    db = initialize_firestore()
 
     # Add movie to Firestore
     add_movie_to_firestore(db, imdb_id, cleaned_data)
