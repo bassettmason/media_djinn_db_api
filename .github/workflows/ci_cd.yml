@@ -46,7 +46,7 @@ jobs:
       with:
         name: 'media-djinn-db-api'
         runtime: 'python310'
-        entry_point: 'add_movie_to_db'
+        entry_point: 'movie_db'
         region: 'us-west1'
         project_id: 'media-djinn'
 
