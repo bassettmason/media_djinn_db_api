@@ -24,7 +24,7 @@ def add_movie_to_firestore(db, imdb_id, movie_data):
 
 def add_movie_list_to_firestore(db, name, media_list):
     """Add a movie list to Firestore."""
-    movie_lists_ref = db.collection('movie-lists')
+    movie_lists_ref = db.collection('media-lists')
     movie_lists_ref.document(name).set({
         'media_list': media_list
     })
