@@ -4,20 +4,28 @@ from utils import remove_null_values, initialize_firestore, add_movie_to_firesto
 db = initialize_firestore()
 
 def movie_db(request):
-    """Adds a movie object or a movie list to the Firestore database."""
-    if request.method != 'POST':
-        return 'Only POST requests are allowed', 405
+    """Handles POST and GET requests for movies and movie lists."""
 
-    request_json = request.get_json(silent=True)
+    if request.method == 'POST':
+        request_json = request.get_json(silent=True)
     
-    # Check for movie list POST request
-    if 'name' in request_json and 'media_list' in request_json:
-        return process_movie_list(request_json)
-    # Otherwise, assume it's a movie POST request
-    elif 'title' in request_json and 'ids' in request_json:
-        return process_movie(request_json)
+        # Check for movie list POST request
+        if 'name' in request_json and 'media_list' in request_json:
+            return process_movie_list(request_json)
+        # Otherwise, assume it's a movie POST request
+        elif 'title' in request_json and 'ids' in request_json:
+            return process_movie(request_json)
+        else:
+            return 'Invalid POST request format', 400
+
+    elif request.method == 'GET':
+        list_name = request.args.get('list_name')
+        limit = request.args.get('limit', default=10, type=int)
+
+        return process_get_movie_list(list_name, limit)
+
     else:
-        return 'Invalid POST request format', 400
+        return 'Only POST and GET requests are allowed', 405
 
 def process_movie(movie_data):
     """Process a single movie object."""
@@ -45,3 +53,22 @@ def process_movie_list(movie_list_data):
     # Add movie list to Firestore
     add_movie_list_to_firestore(db, name, media_list)
     return f"Movie list '{name}' added successfully!", 200
+
+def process_get_movie_list(list_name, limit):
+    """Fetch a movie list by its name and apply a limit."""
+    movie_list_ref = db.collection('movie-lists').document(list_name)
+    movie_list = movie_list_ref.get()
+
+    if movie_list.exists:
+        media_list = movie_list.to_dict().get('media_list', [])
+        limited_media_list = media_list[:limit]
+
+        # Create the return name in the desired format
+        return_name = f"top-{limit}-" + list_name.replace("top-", "")
+
+        return {
+            'name': return_name,
+            'media_list': limited_media_list
+        }, 200
+    else:
+        return f"Movie list '{list_name}' not found", 404
